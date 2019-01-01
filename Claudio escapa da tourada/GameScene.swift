@@ -9,12 +9,25 @@
 import SpriteKit
 
 class GameScene: SKScene {
+    
+    let cam = SKCameraNode()
+    let bee = SKSpriteNode()
+    
     override func didMove(to view: SKView) {
         self.anchorPoint = .zero
         self.backgroundColor = UIColor(red: 0.4, green: 0.6, blue: 0.95, alpha: 1.0)
-        let bee = SKSpriteNode()
+        
+        self.camera = cam
+        self.addTheFlyingBee()
+    }
+    
+    override func didSimulatePhysics() {
+        self.camera!.position = bee.position
+    }
+    
+    func addTheFlyingBee() {
         bee.position = CGPoint(x: 250, y: 250)
-        bee.size = CGSize(width: 28, height: 24) 
+        bee.size = CGSize(width: 28, height: 24)
         self.addChild(bee)
         
         let beeAtlas = SKTextureAtlas(named: "Enemies")
@@ -38,6 +51,5 @@ class GameScene: SKScene {
         let neverEndingFlight = SKAction.repeatForever(beeFlight)
         
         bee.run(neverEndingFlight)
-        
     }
 }
