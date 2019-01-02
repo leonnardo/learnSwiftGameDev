@@ -11,6 +11,9 @@ import SpriteKit
 class Player: SKSpriteNode, GameSprite {
     var textureAtlas: SKTextureAtlas = SKTextureAtlas(named: "Pierre")
     var initialSize: CGSize = CGSize(width: 64, height: 64)
+    var flapping = false
+    let maxFlappingForce: CGFloat = 57000
+    let maxHeight: CGFloat = 1000
     
     var flyAnimation = SKAction()
     var soarAnimation = SKAction()
@@ -18,7 +21,12 @@ class Player: SKSpriteNode, GameSprite {
     init() {
         super.init(texture: nil, color: .clear, size: initialSize)
         createAnimations()
-        self.run(flyAnimation, withKey: "flapAnimation")
+        self.run(soarAnimation, withKey: "soarAnimation")
+        let bodyTexture = textureAtlas.textureNamed("pierre-flying-3")
+        self.physicsBody = SKPhysicsBody(texture: bodyTexture, size: self.size)
+        self.physicsBody?.linearDamping = 0.9
+        self.physicsBody?.mass = 30
+        self.physicsBody?.allowsRotation = false
     }
     
     func createAnimations() {
@@ -49,6 +57,33 @@ class Player: SKSpriteNode, GameSprite {
     }
     
     func onTap() {
+    }
+    
+    func update() {
+        if self.flapping {
+            var forceToApply = maxFlappingForce
+            if position.y > 600 {
+                let percentageOfMaxHeight = position.y / maxHeight
+                let flappingForceSubtraction = percentageOfMaxHeight * maxFlappingForce
+                forceToApply -= flappingForceSubtraction
+            }
+            self.physicsBody?.applyForce(CGVector(dx: 0, dy: forceToApply))
+        }
+        if self.physicsBody!.velocity.dy > 300 {
+            self.physicsBody!.velocity.dy = 300
+        }
+    }
+    
+    func startFlapping() {
+        self.removeAction(forKey: "soarAnimation")
+        self.run(flyAnimation, withKey: "flapAnimation")
+        self.flapping = true
+    }
+    
+    func stopFlapping() {
+        self.removeAction(forKey: "flapAnimation")
+        self.run(soarAnimation, withKey: "soarAnimation")
+        self.flapping = false
     }
     
     required init?(coder aDecoder: NSCoder) {
